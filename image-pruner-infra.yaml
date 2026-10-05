@@ -1,0 +1,26 @@
+# Image pruner CronJob. Independent of configs.imageregistry.operator.openshift.io.
+# With registry managementState: Managed, pruning also deletes blobs from NetApp S3.
+apiVersion: imageregistry.operator.openshift.io/v1
+kind: ImagePruner
+metadata:
+  name: cluster
+spec:
+  suspend: false
+  schedule: "0 0 * * *"
+  keepTagRevisions: 3
+  keepYoungerThanDuration: 60m
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  ignoreInvalidImageReferences: true
+  logLevel: Normal
+  nodeSelector:
+    node-role.kubernetes.io/infra: ""
+  tolerations:
+    - key: node-role.kubernetes.io/infra
+      operator: Equal
+      value: reserved
+      effect: NoSchedule
+    - key: node-role.kubernetes.io/infra
+      operator: Equal
+      value: reserved
+      effect: NoExecute

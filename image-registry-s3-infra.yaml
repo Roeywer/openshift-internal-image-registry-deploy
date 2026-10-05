@@ -1,0 +1,34 @@
+# NetApp S3 (AWS-compatible). Apply after credentials secret exists.
+# Reuses openshift-config/custom-ca (must contain key ca-bundle.crt).
+apiVersion: imageregistry.operator.openshift.io/v1
+kind: Config
+metadata:
+  name: cluster
+spec:
+  managementState: Managed
+  replicas: 2
+  rolloutStrategy: RollingUpdate
+  # Keep blob traffic on the registry; NetApp S3 redirect URLs often fail from cluster nodes.
+  disableRedirect: true
+  nodeSelector:
+    node-role.kubernetes.io/infra: ""
+  tolerations:
+    - key: node-role.kubernetes.io/infra
+      operator: Equal
+      value: reserved
+      effect: NoSchedule
+    - key: node-role.kubernetes.io/infra
+      operator: Equal
+      value: reserved
+      effect: NoExecute
+  storage:
+    managementState: Unmanaged
+    s3:
+      bucket: REPLACE_BUCKET_NAME
+      # ONTAP S3 ignores AWS regions; a dummy value is enough. StorageGRID: match the grid region if set.
+      region: us-east-1
+      regionEndpoint: https://s3.netapp.example.com
+      virtualHostedStyle: false
+      encrypt: false
+      trustedCA:
+        name: custom-ca
